@@ -1,6 +1,8 @@
 # Machine Learning Specialization
-My project files for the Machine Learning Specialization offered through a partnership with Coursera, DeepLearning.AI, and Stanford Online.
+My course files for the Machine Learning Specialization offered through a partnership with Coursera, DeepLearning.AI, and Stanford Online.
 https://www.coursera.org/specializations/machine-learning-introduction
+
+I additionally completed individual projects in Python and R to test the material on real data sets. 
 
 ## Courses
 1. Supervised Machine Learning: Regression and Classification 
