@@ -1,0 +1,175 @@
+---
+title: "Linear Regression with R"
+output: github_document
+author: "Rocky Mazorow"
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Linear Regression in R - Full Project for Beginners by Alejandro AO
+
+Project Goal: Predict how much a customer will spend per year.
+
+Video: https://www.youtube.com/watch?v=Rdq2oEWg3KU
+Code: https://github.com/alejandro-ao/ecommerce-project-r
+Dataset: https://www.kaggle.com/datasets/kolawale/focusing-on-mobile-app-or-website/data
+Import data
+
+# Import data
+
+```{r import, echo=FALSE}
+data <- read.csv('../data/Ecommerce.csv')
+str(data)
+summary(data)
+```
+
+# Exploratory data analysis
+
+Use ggplot geom_point to individually see what relationships exists with Yearly Amount Spent. There does not seem to be a correlation with Time on Website; however, there is a very faint positive correlation with Session Length.
+
+```{r plot_indiv, echo=FALSE}
+library(ggplot2)
+
+# correlation between time on website and yearly amount spent
+ggplot(data, aes(x=Time.on.Website, y = Yearly.Amount.Spent)) +
+  geom_point(color="orange") + 
+  xlab("Time of Website [min]") + 
+  ylab("Yearly Amount Spent [$]")
+
+# correlation between time on website and yearly amount spent
+ggplot(data, aes(x=Avg..Session.Length, y = Yearly.Amount.Spent)) +
+  geom_point(color="orange") + 
+  xlab("Session Length [min]") + 
+  ylab("Yearly Amount Spent [$]")
+```
+Alternatively, we can use pair plots to view the relationships across all the data. Looking only at Yearly Amount Spent, there is a strong positive relationship with Length of Membership.
+
+```{r plot_pair, echo=FALSE}
+# pairplot of all continuous variables
+pairs(data[, which(sapply(data, is.numeric))],
+      col=alpha("orange", 0.4),
+      cex=0.6,        # Character EXpansion = scale point size
+      pch=16)       # Plotting Character = shape of point
+```
+
+## Exploring the selected variable(s)
+
+Based on the pairplot, let's evaluate Length of Membership. First, let's check if the variable normally distributed.
+
+```{r plot_hist, echo=FALSE}
+#hist(data$Length.of.Membership)
+
+ggplot(data, aes(x=Length.of.Membership)) +
+  geom_histogram(color="white", fill="orange", binwidth=0.5)
+
+#boxplot(data$Length.of.Membership)
+
+ggplot(data, aes(x=Length.of.Membership)) +
+  geom_boxplot(fill="orange")
+```
+
+# Simple linear regression model
+For a simple linear regression model, you have a single variable influencing your response variable.
+
+$$ \hat{y} = \hat{\beta_0} + \hat{\beta_1}x$$
+## Fitting a linear model
+```{r fit_lm, echo=FALSE}
+attach(data)
+lm.fit <- lm(Yearly.Amount.Spent ~ Length.of.Membership)
+
+summary(lm.fit)
+```
+
+```{r plot_lm, echo=FALSE}
+plot(Yearly.Amount.Spent ~ Length.of.Membership)
+abline(lm.fit, col="red")
+```
+
+## Residuals analysis
+Linear models assume that the residuals of the predictions are normally distributed. If they are not normally distributed, the model may be biased.
+
+```{r plot_res, echo=FALSE}
+# Residual analysis
+# Method 1: Histogram - check for normal distribution
+hist(residuals(lm.fit))
+
+# Method 2: QQ Plot - check for straight line
+qqnorm(residuals(lm.fit))
+qqline(residuals(lm.fit), col="red")
+
+# Method 3: Shapiro-Wilk - check for p-value > 0.05
+shapiro.test(residuals(lm.fit))
+```
+
+## Training and evaluation of model
+Our previous model used all our data for training. We will know split the data into a training set (70%) and test set (30%) to check the validity of our model.
+
+```{r train_lm, echo=FALSE}
+# split data
+set.seed(42)
+row.num <- sample(1:nrow(data), 0.7*nrow(data))
+train <- data[row.num, ]
+test <- data[-row.num, ]
+
+# estimate the linear fit with the training set
+lm.fit70 <- lm(Yearly.Amount.Spent ~ Length.of.Membership, data=train)
+summary(lm.fit70)
+```
+
+
+To quantitatively evaluate our model, we can look at some values related to the model errors: Mean Absolute Percentage Error (MAPE), $R^2$, and Root Mean Squared Error (RMSE) . The unit of these values matches the unit of your target variable y, in this case $.
+
+```{r predict_lm, echo=FALSE}
+# predict with test set
+pred70 <- predict(lm.fit70, newdata=test)
+err70 <- pred70 - test$Yearly.Amount.Spent
+
+# calculate statistical values
+mape <- mean(abs(err70/test$Yearly.Amount.Spent))
+r2 <- summary(lm.fit70)$r.squared
+rmse <- sqrt(mean(err70^2))
+
+c(MAPE=mape, R2=r2, RMSE=rmse)
+```
+
+# Multivariable linear regression model
+More often than not, you have more than a single variable influencing your response variable. The model will return one coefficient per variable to represent the variable's weight (estimate) for the model. In this case, your model may look more like:  
+
+$$ \hat{y} = \hat{\beta_0} + \hat{\beta_1}x_1 + \hat{\beta_2}x_2 + \hat{\beta_3}x_3 + \hat{\beta_4}x_4$$
+    
+```{r fit_mlm, echo=FALSE}
+mlm.fit <- lm(Yearly.Amount.Spent ~ Length.of.Membership + Avg..Session.Length + Time.on.App + Time.on.Website)
+
+summary(mlm.fit)
+```
+
+You should still perform a residual analysis as explained above.  
+
+We see that Time on Website is not a significant model (p > 0.05) and can be removed from the model.
+
+## Training and evaluation of model
+Our previous model used all our data for training. We will know split the data into a training set (70%) and test set (30%) to check the validity of our model.
+
+```{r train_mlm, echo=FALSE}
+# estimate the linear fit with the training set
+mlm.fit <- lm(Yearly.Amount.Spent ~ Length.of.Membership + Avg..Session.Length + Time.on.App + Time.on.Website, data=train)
+summary(mlm.fit)
+```
+
+To quantitatively evaluate our model, we can look at some values related to the model errors: Mean Absolute Percentage Error (MAPE), $R^2$, and Root Mean Squared Error (RMSE) . The unit of these values matches the unit of your target variable y, in this case $.
+
+```{r predict_mlm, echo=FALSE}
+# predict with test set
+pred70 <- predict(mlm.fit, newdata=test)
+err70 <- pred70 - test$Yearly.Amount.Spent
+
+# calculate statistical values
+mape <- mean(abs(err70/test$Yearly.Amount.Spent))
+r2 <- summary(mlm.fit)$r.squared
+rmse <- sqrt(mean(err70^2))
+
+c(MAPE=mape, R2=r2, RMSE=rmse)
+```
