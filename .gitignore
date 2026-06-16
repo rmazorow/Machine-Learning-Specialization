@@ -205,6 +205,8 @@ cython_debug/
 .RDataTmp
 .Renviron
 .Ruserdata
+*_files/
+*_cache/
 
 # --- RStudio IDE Files ---
 # User-specific settings (pane layouts, open files, etc.)
