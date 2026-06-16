@@ -182,3 +182,38 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# --- R Markdown & knitr Outputs ---
+# Cache directories generated when caching chunks
+*_cache/
+/cache/
+
+# Temporary intermediary markdown files created during rendering
+*.utf8.md
+*.knit.md
+
+# --- Optional: Rendered Final Outputs ---
+# Uncomment the lines below if you do not want to track compiled outputs
+# *.html
+# *.pdf
+# *.docx
+
+# --- R History & Data files ---
+.Rhistory
+.Rapp.history
+.RData
+.RDataTmp
+.Renviron
+.Ruserdata
+
+# --- RStudio IDE Files ---
+# User-specific settings (pane layouts, open files, etc.)
+.Rproj.user/
+
+# --- Packages & Deployment ---
+# RStudio Connect deployment history
+rsconnect/
+
+# Large package build artifacts
+/*.tar.gz
+/*.Rcheck/
